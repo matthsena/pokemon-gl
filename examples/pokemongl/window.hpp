@@ -55,6 +55,15 @@ private:
 
   void loadModelFromFile(std::string_view path);
   void loadPokeballFromFile(std::string_view path);
+
+  // Estados da Pokébola
+  glm::vec3 m_pokeballPosition{};
+  glm::vec3 m_pokeballVelocity{};
+  bool m_pokeballLaunched{false};
+
+  void launchPokeball();
+  void updatePokeballPosition();
+  // void checkPokemonCapture();
 };
 
 #endif

@@ -12,6 +12,10 @@ template <> struct std::hash<Vertex> {
 
 void Window::onEvent(SDL_Event const &event) {
   if (event.type == SDL_KEYDOWN) {
+    if (event.key.keysym.sym == SDLK_SPACE) {
+      launchPokeball();
+    }
+
     if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_w)
       m_dollySpeed = 1.0f;
     if (event.key.keysym.sym == SDLK_DOWN || event.key.keysym.sym == SDLK_s)
@@ -304,15 +308,18 @@ void Window::onPaint() {
 
   abcg::glBindVertexArray(m_VAO_pokeball);
 
-  model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 0.0f));
-  model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
-  model = glm::scale(model, glm::vec3(0.1f));
+  // model = glm::mat4(1.0);
+  glm::mat4 model_pokeball{1.0f};
+  model_pokeball = glm::translate(model_pokeball, m_pokeballPosition);
+  model_pokeball =
+      glm::rotate(model_pokeball, glm::radians(90.0f), glm::vec3(0, 1, 0));
+  model_pokeball = glm::scale(model_pokeball, glm::vec3(0.002f));
 
-  abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-  abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
+  abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE,
+                           &model_pokeball[0][0]);
+  abcg::glUniform4f(m_colorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
   abcg::glDrawElements(GL_TRIANGLES, m_indices_pokeball.size(), GL_UNSIGNED_INT,
                        nullptr);
-
 
   abcg::glBindVertexArray(0);
 
@@ -345,4 +352,29 @@ void Window::onUpdate() {
   m_camera.dolly(m_dollySpeed * deltaTime);
   m_camera.truck(m_truckSpeed * deltaTime);
   m_camera.pan(m_panSpeed * deltaTime);
+
+  // Atualiza a posição da Pokébola
+  updatePokeballPosition();
+}
+
+void Window::launchPokeball() {
+  if (!m_pokeballLaunched) {
+    fmt::print("Pokebola vai!\n");
+
+    m_pokeballPosition = m_camera.getEyePosition();
+    glm::vec3 launchDirection =
+        glm::normalize(m_camera.getLookAtPoint() - m_camera.getEyePosition());
+    float launchSpeed = 2.0f;
+    m_pokeballVelocity = launchDirection * launchSpeed;
+    m_pokeballLaunched = true;
+  }
+}
+
+void Window::updatePokeballPosition() {
+  if (m_pokeballLaunched) {
+    fmt::print("Pokebola andando!\n");
+    auto const deltaTime{gsl::narrow_cast<float>(getDeltaTime())};
+
+    m_pokeballPosition += m_pokeballVelocity * deltaTime;
+  }
 }
