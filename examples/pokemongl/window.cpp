@@ -234,7 +234,10 @@ void Window::onPaint() {
 
   // Draw white bunny
   glm::mat4 model{1.0f};
-  model = glm::translate(model, glm::vec3(-1.0f, 0.0f, 0.0f));
+
+  m_pokemonPosition[0] = glm::vec3(-1.0f, 0.0f, 0.0f);
+
+  model = glm::translate(model, m_pokemonPosition[0]);
   model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
   model = glm::scale(model, glm::vec3(0.02f));
 
@@ -245,7 +248,10 @@ void Window::onPaint() {
 
   // Draw yellow bunny
   model = glm::mat4(1.0);
-  model = glm::translate(model, glm::vec3(0.0f, 0.0f, -1.0f));
+
+  m_pokemonPosition[1] = glm::vec3(0.0f, 0.0f, -1.0f);
+
+  model = glm::translate(model, m_pokemonPosition[1]);
   model = glm::scale(model, glm::vec3(0.02f));
 
   abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
@@ -255,7 +261,10 @@ void Window::onPaint() {
 
   // Draw blue bunny
   model = glm::mat4(1.0);
-  model = glm::translate(model, glm::vec3(1.0f, 0.0f, 0.0f));
+
+  m_pokemonPosition[2] = glm::vec3(1.0f, 0.0f, 0.0f);
+
+  model = glm::translate(model, m_pokemonPosition[2]);
   model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1, 0));
   model = glm::scale(model, glm::vec3(0.02f));
 
@@ -334,9 +343,33 @@ void Window::launchPokeball() {
 
 void Window::updatePokeballPosition() {
   if (m_pokeballLaunched) {
-    fmt::print("Pokebola andando!\n");
     auto const deltaTime{gsl::narrow_cast<float>(getDeltaTime())};
 
     m_pokeballPosition += m_pokeballVelocity * deltaTime;
+
+    // Verifica se saiu da tela
+    if (m_pokeballPosition.x < -1.0f || m_pokeballPosition.x > 1.0f) {
+      m_pokeballLaunched = false;
+      fmt::print("Pokebola parou!\n");
+    }
+
+    // Verifica se colidiu com algum Pokémon
+    // raio de colisao
+    const float pokeballRadius = 0.1f;
+    const float pokemonRadius = 0.5f;
+
+    for (int i = 0; i < 3; ++i) {
+      if (!m_pokemonCaptured[i]) {
+        float distance =
+            glm::distance(m_pokeballPosition, m_pokemonPosition[i]);
+        if ((distance - pokemonRadius - pokeballRadius) < 0.02f) {
+          // Colisão detectada
+          fmt::print("Pokébola colidiu com Pokémon {}!\n", i + 1);
+          m_pokemonCaptured[i] = true;
+          m_pokeballLaunched = false;
+          break;
+        }
+      }
+    }
   }
 }
