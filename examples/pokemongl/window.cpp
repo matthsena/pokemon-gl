@@ -265,21 +265,23 @@ void Window::onPaint() {
                        nullptr);
 
   // DRAW Pokeball
+  if (m_pokeballLaunched == true) {
 
-  abcg::glBindVertexArray(m_VAO_pokeball);
+    abcg::glBindVertexArray(m_VAO_pokeball);
 
-  // model = glm::mat4(1.0);
-  glm::mat4 model_pokeball{1.0f};
-  model_pokeball = glm::translate(model_pokeball, m_pokeballPosition);
-  model_pokeball =
-      glm::rotate(model_pokeball, glm::radians(90.0f), glm::vec3(0, 1, 0));
-  model_pokeball = glm::scale(model_pokeball, glm::vec3(0.002f));
+    // model = glm::mat4(1.0);
+    glm::mat4 model_pokeball{1.0f};
+    model_pokeball = glm::translate(model_pokeball, m_pokeballPosition);
+    model_pokeball =
+        glm::rotate(model_pokeball, glm::radians(90.0f), glm::vec3(0, 1, 0));
+    model_pokeball = glm::scale(model_pokeball, glm::vec3(0.002f));
 
-  abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE,
-                           &model_pokeball[0][0]);
-  abcg::glUniform4f(m_colorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
-  abcg::glDrawElements(GL_TRIANGLES, m_indices_pokeball.size(), GL_UNSIGNED_INT,
-                       nullptr);
+    abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE,
+                             &model_pokeball[0][0]);
+    abcg::glUniform4f(m_colorLocation, 1.0f, 0.0f, 0.0f, 1.0f);
+    abcg::glDrawElements(GL_TRIANGLES, m_indices_pokeball.size(),
+                         GL_UNSIGNED_INT, nullptr);
+  }
 
   abcg::glBindVertexArray(0);
 
