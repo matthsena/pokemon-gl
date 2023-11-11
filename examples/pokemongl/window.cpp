@@ -74,7 +74,10 @@ void Window::onCreate() {
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
 
   // Load model
-  loadModelFromFile(assetsPath + "charmander.obj");
+  auto const [vertices_pokemon, indices_pokemon] =
+      loadModelFromFile(assetsPath + "charmander.obj");
+  m_vertices = vertices_pokemon;
+  m_indices = indices_pokemon;
 
   // Generate VBO
   abcg::glGenBuffers(1, &m_VBO);
@@ -112,7 +115,10 @@ void Window::onCreate() {
   abcg::glBindVertexArray(0);
 
   // build pokeball
-  loadPokeballFromFile(assetsPath + "pokeball.obj");
+  auto const [vertices_pokeball, indices_pokeball] =
+      loadModelFromFile(assetsPath + "pokeball.obj");
+  m_vertices_pokeball = vertices_pokeball;
+  m_indices_pokeball = indices_pokeball;
 
   // Generate VBO
   abcg::glGenBuffers(1, &m_VBO_pokeball);
@@ -151,8 +157,12 @@ void Window::onCreate() {
   abcg::glBindVertexArray(0);
 }
 
-void Window::loadPokeballFromFile(std::string_view path) {
+// https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
+std::tuple<std::vector<Vertex>, std::vector<GLuint>>
+Window::loadModelFromFile(std::string_view path) {
   tinyobj::ObjReader reader;
+  std::vector<Vertex> vertices;
+  std::vector<GLuint> indices;
 
   if (!reader.ParseFromFile(path.data())) {
     if (!reader.Error().empty()) {
@@ -169,8 +179,8 @@ void Window::loadPokeballFromFile(std::string_view path) {
   auto const &attributes{reader.GetAttrib()};
   auto const &shapes{reader.GetShapes()};
 
-  m_vertices_pokeball.clear();
-  m_indices_pokeball.clear();
+  vertices.clear();
+  indices.clear();
 
   // A key:value map with key=Vertex and value=index
   std::unordered_map<Vertex, GLuint> hash{};
@@ -193,66 +203,16 @@ void Window::loadPokeballFromFile(std::string_view path) {
       // If map doesn't contain this vertex
       if (!hash.contains(vertex)) {
         // Add this index (size of m_vertices)
-        hash[vertex] = m_vertices_pokeball.size();
+        hash[vertex] = vertices.size();
         // Add this vertex
-        m_vertices_pokeball.push_back(vertex);
+        vertices.push_back(vertex);
       }
 
-      m_indices_pokeball.push_back(hash[vertex]);
+      indices.push_back(hash[vertex]);
     }
   }
-}
 
-void Window::loadModelFromFile(std::string_view path) {
-  tinyobj::ObjReader reader;
-
-  if (!reader.ParseFromFile(path.data())) {
-    if (!reader.Error().empty()) {
-      throw abcg::RuntimeError(
-          fmt::format("Failed to load model {} ({})", path, reader.Error()));
-    }
-    throw abcg::RuntimeError(fmt::format("Failed to load model {}", path));
-  }
-
-  if (!reader.Warning().empty()) {
-    fmt::print("Warning: {}\n", reader.Warning());
-  }
-
-  auto const &attributes{reader.GetAttrib()};
-  auto const &shapes{reader.GetShapes()};
-
-  m_vertices.clear();
-  m_indices.clear();
-
-  // A key:value map with key=Vertex and value=index
-  std::unordered_map<Vertex, GLuint> hash{};
-
-  // Loop over shapes
-  for (auto const &shape : shapes) {
-    // Loop over indices
-    for (auto const offset : iter::range(shape.mesh.indices.size())) {
-      // Access to vertex
-      auto const index{shape.mesh.indices.at(offset)};
-
-      // Vertex position
-      auto const startIndex{3 * index.vertex_index};
-      auto const vx{attributes.vertices.at(startIndex + 0)};
-      auto const vy{attributes.vertices.at(startIndex + 1)};
-      auto const vz{attributes.vertices.at(startIndex + 2)};
-
-      Vertex const vertex{.position = {vx, vy, vz}};
-
-      // If map doesn't contain this vertex
-      if (!hash.contains(vertex)) {
-        // Add this index (size of m_vertices)
-        hash[vertex] = m_vertices.size();
-        // Add this vertex
-        m_vertices.push_back(vertex);
-      }
-
-      m_indices.push_back(hash[vertex]);
-    }
-  }
+  return std::make_tuple(vertices, indices);
 }
 
 void Window::onPaint() {

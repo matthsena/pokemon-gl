@@ -5,6 +5,7 @@
 
 #include "camera.hpp"
 #include "ground.hpp"
+#include <tuple>
 
 struct Vertex {
   glm::vec3 position;
@@ -53,8 +54,10 @@ private:
   std::vector<Vertex> m_vertices_pokeball;
   std::vector<GLuint> m_indices_pokeball;
 
-  void loadModelFromFile(std::string_view path);
-  void loadPokeballFromFile(std::string_view path);
+  // void loadModelFromFile(std::string_view path);
+  
+  std::tuple<std::vector<Vertex>, std::vector<GLuint>>
+  loadModelFromFile(std::string_view path);
 
   // Estados da Pokébola
   glm::vec3 m_pokeballPosition{};
