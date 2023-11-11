@@ -5,6 +5,7 @@
 
 #include "camera.hpp"
 #include "ground.hpp"
+#include <random>
 #include <tuple>
 
 struct Vertex {
@@ -35,6 +36,8 @@ private:
   GLuint m_EBO_pokeball{};
 
   GLuint m_program{};
+
+  std::default_random_engine m_randomEngine;
 
   GLint m_viewMatrixLocation{};
   GLint m_projMatrixLocation{};

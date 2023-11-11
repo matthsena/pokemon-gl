@@ -155,6 +155,18 @@ void Window::onCreate() {
   abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO_pokeball);
 
   abcg::glBindVertexArray(0);
+
+  // Definindo posição inicial dos pokemons
+  std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
+
+  m_pokemonPosition[0] = glm::vec3(rd_poke_position(m_randomEngine), 0,
+                                   rd_poke_position(m_randomEngine));
+
+  m_pokemonPosition[1] = glm::vec3(rd_poke_position(m_randomEngine), 0,
+                                   rd_poke_position(m_randomEngine));
+
+  m_pokemonPosition[2] = glm::vec3(rd_poke_position(m_randomEngine), 0,
+                                   rd_poke_position(m_randomEngine));
 }
 
 // https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
@@ -236,8 +248,6 @@ void Window::onPaint() {
   glm::mat4 model{1.0f};
   // renderizacao condicional caso nao tenha sido capturado
   if (m_pokemonCaptured[0] == false) {
-    m_pokemonPosition[0] = glm::vec3(-1.0f, 0.0f, 0.0f);
-
     model = glm::translate(model, m_pokemonPosition[0]);
     model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
     model = glm::scale(model, glm::vec3(0.02f));
@@ -252,8 +262,6 @@ void Window::onPaint() {
     // Draw yellow bunny
     model = glm::mat4(1.0);
 
-    m_pokemonPosition[1] = glm::vec3(0.0f, 0.0f, -1.0f);
-
     model = glm::translate(model, m_pokemonPosition[1]);
     model = glm::scale(model, glm::vec3(0.02f));
 
@@ -266,8 +274,6 @@ void Window::onPaint() {
   if (m_pokemonCaptured[2] == false) {
     // Draw blue bunny
     model = glm::mat4(1.0);
-
-    m_pokemonPosition[2] = glm::vec3(1.0f, 0.0f, 0.0f);
 
     model = glm::translate(model, m_pokemonPosition[2]);
     model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1, 0));
@@ -339,6 +345,7 @@ void Window::launchPokeball() {
     fmt::print("Pokebola vai!\n");
 
     m_pokeballPosition = m_camera.getEyePosition();
+
     glm::vec3 launchDirection =
         glm::normalize(m_camera.getLookAtPoint() - m_camera.getEyePosition());
     float launchSpeed = 2.0f;
@@ -354,6 +361,7 @@ void Window::updatePokeballPosition() {
     m_pokeballPosition += m_pokeballVelocity * deltaTime;
 
     // Verifica se saiu da tela
+    // ARRUMAR POKEBOLA QUANDO SAIR DA TELA
     if (m_pokeballPosition.x < -1.0f || m_pokeballPosition.x > 1.0f) {
       m_pokeballLaunched = false;
       fmt::print("Pokebola parou!\n");
@@ -364,10 +372,11 @@ void Window::updatePokeballPosition() {
     const float pokeballRadius = 0.1f;
     const float pokemonRadius = 0.5f;
 
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < m_pokemonPosition->length(); ++i) {
       if (!m_pokemonCaptured[i]) {
         float distance =
             glm::distance(m_pokeballPosition, m_pokemonPosition[i]);
+
         if ((distance - pokemonRadius - pokeballRadius) < 0.02f) {
           // Colisão detectada
           fmt::print("Pokébola colidiu com Pokémon {}!\n", i + 1);
