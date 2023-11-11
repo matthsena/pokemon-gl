@@ -234,44 +234,50 @@ void Window::onPaint() {
 
   // Draw white bunny
   glm::mat4 model{1.0f};
+  // renderizacao condicional caso nao tenha sido capturado
+  if (m_pokemonCaptured[0] == false) {
+    m_pokemonPosition[0] = glm::vec3(-1.0f, 0.0f, 0.0f);
 
-  m_pokemonPosition[0] = glm::vec3(-1.0f, 0.0f, 0.0f);
+    model = glm::translate(model, m_pokemonPosition[0]);
+    model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
+    model = glm::scale(model, glm::vec3(0.02f));
 
-  model = glm::translate(model, m_pokemonPosition[0]);
-  model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
-  model = glm::scale(model, glm::vec3(0.02f));
+    abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
+    abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
+    abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
+                         nullptr);
+  }
 
-  abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-  abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
-  abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
-                       nullptr);
+  if (m_pokemonCaptured[1] == false) {
+    // Draw yellow bunny
+    model = glm::mat4(1.0);
 
-  // Draw yellow bunny
-  model = glm::mat4(1.0);
+    m_pokemonPosition[1] = glm::vec3(0.0f, 0.0f, -1.0f);
 
-  m_pokemonPosition[1] = glm::vec3(0.0f, 0.0f, -1.0f);
+    model = glm::translate(model, m_pokemonPosition[1]);
+    model = glm::scale(model, glm::vec3(0.02f));
 
-  model = glm::translate(model, m_pokemonPosition[1]);
-  model = glm::scale(model, glm::vec3(0.02f));
+    abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
+    abcg::glUniform4f(m_colorLocation, 1.0f, 0.8f, 0.0f, 1.0f);
+    abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
+                         nullptr);
+  }
 
-  abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-  abcg::glUniform4f(m_colorLocation, 1.0f, 0.8f, 0.0f, 1.0f);
-  abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
-                       nullptr);
+  if (m_pokemonCaptured[2] == false) {
+    // Draw blue bunny
+    model = glm::mat4(1.0);
 
-  // Draw blue bunny
-  model = glm::mat4(1.0);
+    m_pokemonPosition[2] = glm::vec3(1.0f, 0.0f, 0.0f);
 
-  m_pokemonPosition[2] = glm::vec3(1.0f, 0.0f, 0.0f);
+    model = glm::translate(model, m_pokemonPosition[2]);
+    model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+    model = glm::scale(model, glm::vec3(0.02f));
 
-  model = glm::translate(model, m_pokemonPosition[2]);
-  model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1, 0));
-  model = glm::scale(model, glm::vec3(0.02f));
-
-  abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-  abcg::glUniform4f(m_colorLocation, 0.0f, 0.8f, 1.0f, 1.0f);
-  abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
-                       nullptr);
+    abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
+    abcg::glUniform4f(m_colorLocation, 0.0f, 0.8f, 1.0f, 1.0f);
+    abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
+                         nullptr);
+  }
 
   // DRAW Pokeball
   if (m_pokeballLaunched == true) {
