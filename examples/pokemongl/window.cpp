@@ -157,7 +157,10 @@ void Window::onCreate() {
   abcg::glBindVertexArray(0);
 
   // Definindo posição inicial dos pokemons
-  std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
+  m_randomEngine.seed(
+      std::chrono::steady_clock::now().time_since_epoch().count());
+
+  std::uniform_real_distribution<float> rd_poke_position(-1.0f, 1.0f);
 
   m_pokemonPosition[0] = glm::vec3(rd_poke_position(m_randomEngine), 0,
                                    rd_poke_position(m_randomEngine));
@@ -380,7 +383,16 @@ void Window::updatePokeballPosition() {
         if ((distance - pokemonRadius - pokeballRadius) < 0.02f) {
           // Colisão detectada
           fmt::print("Pokébola colidiu com Pokémon {}!\n", i + 1);
-          m_pokemonCaptured[i] = true;
+          // probabilidade de captura 45%
+          std::uniform_real_distribution<float> rd_poke_capture(0.0f, 1.0f);
+
+          if (rd_poke_capture(m_randomEngine) < 0.45f) {
+            m_pokemonCaptured[i] = true;
+            fmt::print("Pokémon {} capturado!\n", i + 1);
+          } else {
+            fmt::print("Pokémon {} escapou!\n", i + 1);
+          }
+
           m_pokeballLaunched = false;
           break;
         }
