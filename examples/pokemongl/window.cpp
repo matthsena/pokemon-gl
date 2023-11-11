@@ -160,7 +160,7 @@ void Window::onCreate() {
   m_randomEngine.seed(
       std::chrono::steady_clock::now().time_since_epoch().count());
 
-  std::uniform_real_distribution<float> rd_poke_position(-1.0f, 1.0f);
+  std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
 
   m_pokemonPosition[0] = glm::vec3(rd_poke_position(m_randomEngine), 0,
                                    rd_poke_position(m_randomEngine));
