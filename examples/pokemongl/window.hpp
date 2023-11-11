@@ -28,6 +28,11 @@ private:
   GLuint m_VAO{};
   GLuint m_VBO{};
   GLuint m_EBO{};
+
+  GLuint m_VAO_pokeball{};
+  GLuint m_VBO_pokeball{};
+  GLuint m_EBO_pokeball{};
+
   GLuint m_program{};
 
   GLint m_viewMatrixLocation{};
@@ -45,7 +50,11 @@ private:
   std::vector<Vertex> m_vertices;
   std::vector<GLuint> m_indices;
 
+  std::vector<Vertex> m_vertices_pokeball;
+  std::vector<GLuint> m_indices_pokeball;
+
   void loadModelFromFile(std::string_view path);
+  void loadPokeballFromFile(std::string_view path);
 };
 
 #endif
