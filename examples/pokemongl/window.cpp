@@ -101,7 +101,7 @@ void Window::onCreate() {
 
   // Lista de modelos .obj disponíveis
   std::vector<std::string> modelPaths = {
-      "charmander.obj", "bulbasaur.obj", "pikachu.obj",
+      "charmander.obj", "bulbasaur.obj"
       // Adicione outros modelos aqui...
   };
 
@@ -286,7 +286,7 @@ void Window::onPaint() {
 
   abcg::glBindVertexArray(m_VAO);
 
-  // Draw white bunny
+  // lARANJA
   glm::mat4 model{1.0f};
   // renderizacao condicional caso nao tenha sido capturado
   if (m_pokemonCaptured[0] == false) {
@@ -295,26 +295,26 @@ void Window::onPaint() {
     model = glm::scale(model, glm::vec3(0.02f));
 
     abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-    abcg::glUniform4f(m_colorLocation, 1.0f, 1.0f, 1.0f, 1.0f);
+    abcg::glUniform4f(m_colorLocation, 1.0f, 0.5f, 0.0f, 1.0f);
     abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
                          nullptr);
   }
 
   if (m_pokemonCaptured[1] == false) {
-    // Draw yellow bunny
+    // VERDE
     model = glm::mat4(1.0);
 
     model = glm::translate(model, m_pokemonPosition[1]);
     model = glm::scale(model, glm::vec3(0.02f));
 
     abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-    abcg::glUniform4f(m_colorLocation, 1.0f, 0.8f, 0.0f, 1.0f);
+    abcg::glUniform4f(m_colorLocation, 0.2f, 0.6f, 0.3f, 1.0f);
     abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
                          nullptr);
   }
 
   if (m_pokemonCaptured[2] == false) {
-    // Draw blue bunny
+    // AZUL
     model = glm::mat4(1.0);
 
     model = glm::translate(model, m_pokemonPosition[2]);
@@ -322,7 +322,7 @@ void Window::onPaint() {
     model = glm::scale(model, glm::vec3(0.02f));
 
     abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-    abcg::glUniform4f(m_colorLocation, 0.0f, 0.8f, 1.0f, 1.0f);
+    abcg::glUniform4f(m_colorLocation, 0.0f, 0.5f, 1.0f, 1.0f);
     abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
                          nullptr);
   }
@@ -514,8 +514,8 @@ void Window::restartGame() {
                                      rd_poke_position(m_randomEngine));
   }
   m_pokeballLaunched = false;
-  m_restarted = true;
 
+  m_restarted = true;
   std::this_thread::sleep_for(std::chrono::seconds(1));
   m_restarted = false;
 }

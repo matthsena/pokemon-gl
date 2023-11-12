@@ -9,6 +9,7 @@
 #include <random>
 #include <thread>
 #include <tuple>
+#include <unordered_map>
 
 struct Vertex {
   glm::vec3 position;
@@ -27,6 +28,24 @@ protected:
   void onUpdate() override;
 
 private:
+  struct Pokemon {
+    GLuint m_vao{};
+    GLuint m_vbo{};
+    GLuint m_ebo{};
+    std::vector<Vertex> m_vertices;
+    std::vector<GLuint> m_indices;
+    glm::vec3 m_color{};
+    // glm::vec3 m_position{};
+    std::string m_name{};
+    // bool m_captured{false};
+    // float m_scale{1.0f};
+    // float m_catchRate{0.50f};
+  };
+
+  std::unordered_map<std::string, Pokemon> m_pokemons_list;
+  
+
+
   bool m_showPokedex{false};
   bool m_restarted{false};
 
