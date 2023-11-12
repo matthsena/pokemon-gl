@@ -34,20 +34,22 @@ private:
     GLuint m_ebo{};
     std::vector<Vertex> m_vertices;
     std::vector<GLuint> m_indices;
-    glm::vec3 m_color{};
-    // glm::vec3 m_position{};
+    glm::vec4 m_color{};
     std::string m_name{};
-    // bool m_captured{false};
-    // float m_scale{1.0f};
-    // float m_catchRate{0.50f};
+    bool m_captured{false};
+    glm::vec3 m_position{0, 0, 0};
   };
 
+
   std::unordered_map<std::string, Pokemon> m_pokemons_list;
+  std::vector<std::string> m_modelPaths = {"charmander.obj", "bulbasaur.obj"};
+
+  int m_num_pokemons{5};
+  Pokemon m_pokemon[5];
   
-
-
   bool m_showPokedex{false};
   bool m_restarted{false};
+
 
   glm::ivec2 m_viewportSize{};
 
@@ -87,10 +89,6 @@ private:
 
   std::tuple<std::vector<Vertex>, std::vector<GLuint>>
   loadModelFromFile(std::string_view path);
-
-  // Estado dos pokemons
-  glm::vec3 m_pokemonPosition[3];
-  bool m_pokemonCaptured[3]{false, false, false};
 
   // Estados da Pokébola
   glm::vec3 m_pokeballPosition{};

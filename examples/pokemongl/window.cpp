@@ -1,7 +1,5 @@
 #include "window.hpp"
 
-#include <unordered_map>
-
 // Explicit specialization of std::hash for Vertex
 template <> struct std::hash<Vertex> {
   size_t operator()(Vertex const &vertex) const noexcept {
@@ -23,10 +21,6 @@ void Window::onEvent(SDL_Event const &event) {
     if (event.key.keysym.sym == SDLK_r) {
       std::thread restartGameThread(&Window::restartGame, this);
       restartGameThread.detach();
-    }
-
-    if (event.key.keysym.sym == SDLK_TAB) {
-      m_pokeballLaunched = false;
     }
 
     if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_w)
@@ -93,65 +87,70 @@ void Window::onCreate() {
   m_modelMatrixLocation = abcg::glGetUniformLocation(m_program, "modelMatrix");
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
 
-  // Load model
-  // auto const [vertices_pokemon, indices_pokemon] =
-  //    loadModelFromFile(assetsPath + "charmander.obj");
-  // m_vertices = vertices_pokemon;
-  // m_indices = indices_pokemon;
+  for (int i = 0; i < 2; i++) {
+    auto color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    std::string name = "";
 
-  // Lista de modelos .obj disponíveis
-  std::vector<std::string> modelPaths = {
-      "charmander.obj", "bulbasaur.obj"
-      // Adicione outros modelos aqui...
-  };
+    if (m_modelPaths[i] == "charmander.obj") {
+      color = glm::vec4(1.0f, 0.5f, 0.0f, 1.0f);
+      name = "Charmander";
+    } else if (m_modelPaths[i] == "bulbasaur.obj") {
+      color = glm::vec4(0.2f, 0.6f, 0.3f, 1.0f);
+      name = "Bulbasaur";
+    } else if (m_modelPaths[i] == "squirtle.obj") {
+      color = glm::vec4(0.0f, 0.5f, 1.0f, 1.0f);
+      name = "Squirtle";
+    } else if (m_modelPaths[i] == "mew.obj") {
+      color = glm::vec4(0.8f, 0.0f, 0.8f, 1.0f);
+      name = "Mew";
+    }
 
-  // Seed para a geração de números aleatórios
-  std::srand(std::time(0));
+    auto const [vertices_pokemon, indices_pokemon] =
+        loadModelFromFile(assetsPath + m_modelPaths[i]);
 
-  // Seleciona aleatoriamente um modelo da lista
-  int randomModelIndex = std::rand() % modelPaths.size();
-  std::string selectedModelPath = assetsPath + modelPaths[randomModelIndex];
+    GLuint tmp_VAO{};
+    GLuint tmp_VBO{};
+    GLuint tmp_EBO{};
 
-  // Carrega o modelo selecionado
-  auto const [vertices_pokemon, indices_pokemon] =
-      loadModelFromFile(selectedModelPath);
-  m_vertices = vertices_pokemon;
-  m_indices = indices_pokemon;
+    // Generate VBO
+    abcg::glGenBuffers(1, &tmp_VBO);
+    abcg::glBindBuffer(GL_ARRAY_BUFFER, tmp_VBO);
+    abcg::glBufferData(GL_ARRAY_BUFFER,
+                       sizeof(vertices_pokemon.at(0)) * vertices_pokemon.size(),
+                       vertices_pokemon.data(), GL_STATIC_DRAW);
+    abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-  // Generate VBO
-  abcg::glGenBuffers(1, &m_VBO);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-  abcg::glBufferData(GL_ARRAY_BUFFER,
-                     sizeof(m_vertices.at(0)) * m_vertices.size(),
-                     m_vertices.data(), GL_STATIC_DRAW);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // Generate EBO
+    abcg::glGenBuffers(1, &tmp_EBO);
+    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tmp_EBO);
+    abcg::glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                       sizeof(indices_pokemon.at(0)) * indices_pokemon.size(),
+                       indices_pokemon.data(), GL_STATIC_DRAW);
+    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-  // Generate EBO
-  abcg::glGenBuffers(1, &m_EBO);
-  abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-  abcg::glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                     sizeof(m_indices.at(0)) * m_indices.size(),
-                     m_indices.data(), GL_STATIC_DRAW);
-  abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    // Create VAO
+    abcg::glGenVertexArrays(1, &tmp_VAO);
 
-  // Create VAO
-  abcg::glGenVertexArrays(1, &m_VAO);
+    // Bind vertex attributes to current VAO
+    abcg::glBindVertexArray(tmp_VAO);
 
-  // Bind vertex attributes to current VAO
-  abcg::glBindVertexArray(m_VAO);
+    abcg::glBindBuffer(GL_ARRAY_BUFFER, tmp_VBO);
+    auto const positionAttribute{
+        abcg::glGetAttribLocation(m_program, "inPosition")};
+    abcg::glEnableVertexAttribArray(positionAttribute);
+    abcg::glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE,
+                                sizeof(Vertex), nullptr);
+    abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-  auto const positionAttribute{
-      abcg::glGetAttribLocation(m_program, "inPosition")};
-  abcg::glEnableVertexAttribArray(positionAttribute);
-  abcg::glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE,
-                              sizeof(Vertex), nullptr);
-  abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
+    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tmp_EBO);
 
-  abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+    // End of binding to current VAO
+    abcg::glBindVertexArray(0);
 
-  // End of binding to current VAO
-  abcg::glBindVertexArray(0);
+    m_pokemons_list[m_modelPaths[i]] =
+        Pokemon{tmp_VAO,         tmp_VBO, tmp_EBO, vertices_pokemon,
+                indices_pokemon, color,   name};
+  }
 
   // build pokeball
   auto const [vertices_pokeball, indices_pokeball] =
@@ -200,15 +199,14 @@ void Window::onCreate() {
       std::chrono::steady_clock::now().time_since_epoch().count());
 
   std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
+  std::uniform_int_distribution<int> rd_poke_model(0, 1);
 
-  m_pokemonPosition[0] = glm::vec3(rd_poke_position(m_randomEngine), 0,
-                                   rd_poke_position(m_randomEngine));
-
-  m_pokemonPosition[1] = glm::vec3(rd_poke_position(m_randomEngine), 0,
-                                   rd_poke_position(m_randomEngine));
-
-  m_pokemonPosition[2] = glm::vec3(rd_poke_position(m_randomEngine), 0,
-                                   rd_poke_position(m_randomEngine));
+  // inicializando pokemons
+  for (int i = 0; i < m_num_pokemons; ++i) {
+    m_pokemon[i] = m_pokemons_list[m_modelPaths[rd_poke_model(m_randomEngine)]];
+    m_pokemon[i].m_position = glm::vec3(rd_poke_position(m_randomEngine), 0,
+                                        rd_poke_position(m_randomEngine));
+  }
 }
 
 // https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
@@ -284,47 +282,27 @@ void Window::onPaint() {
   abcg::glUniformMatrix4fv(m_projMatrixLocation, 1, GL_FALSE,
                            &m_camera.getProjMatrix()[0][0]);
 
-  abcg::glBindVertexArray(m_VAO);
+  // renderizando cada pokemon
+  for (int i = 0; i < m_num_pokemons; ++i) {
+    auto selectedPokemon = m_pokemon[i];
 
-  // lARANJA
-  glm::mat4 model{1.0f};
-  // renderizacao condicional caso nao tenha sido capturado
-  if (m_pokemonCaptured[0] == false) {
-    model = glm::translate(model, m_pokemonPosition[0]);
-    model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
-    model = glm::scale(model, glm::vec3(0.02f));
+    abcg::glBindVertexArray(selectedPokemon.m_vao);
 
-    abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-    abcg::glUniform4f(m_colorLocation, 1.0f, 0.5f, 0.0f, 1.0f);
-    abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
-                         nullptr);
-  }
+    glm::mat4 model{1.0f};
+    // renderizacao condicional caso nao tenha sido capturado
+    if (selectedPokemon.m_captured == false) {
+      model = glm::translate(model, selectedPokemon.m_position);
+      model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
+      model = glm::scale(model, glm::vec3(0.02f));
 
-  if (m_pokemonCaptured[1] == false) {
-    // VERDE
-    model = glm::mat4(1.0);
-
-    model = glm::translate(model, m_pokemonPosition[1]);
-    model = glm::scale(model, glm::vec3(0.02f));
-
-    abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-    abcg::glUniform4f(m_colorLocation, 0.2f, 0.6f, 0.3f, 1.0f);
-    abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
-                         nullptr);
-  }
-
-  if (m_pokemonCaptured[2] == false) {
-    // AZUL
-    model = glm::mat4(1.0);
-
-    model = glm::translate(model, m_pokemonPosition[2]);
-    model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(0, 1, 0));
-    model = glm::scale(model, glm::vec3(0.02f));
-
-    abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE, &model[0][0]);
-    abcg::glUniform4f(m_colorLocation, 0.0f, 0.5f, 1.0f, 1.0f);
-    abcg::glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT,
-                         nullptr);
+      abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE,
+                               &model[0][0]);
+      abcg::glUniform4f(m_colorLocation, selectedPokemon.m_color.r,
+                        selectedPokemon.m_color.g, selectedPokemon.m_color.b,
+                        selectedPokemon.m_color.a);
+      abcg::glDrawElements(GL_TRIANGLES, selectedPokemon.m_indices.size(),
+                           GL_UNSIGNED_INT, nullptr);
+    }
   }
 
   // DRAW Pokeball
@@ -402,8 +380,7 @@ void Window::onPaintUI() {
     // JANELA DA POKEDEX
     if (m_showPokedex) {
       ImGui::Begin("Pokédex", nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
-      int capturedCount = std::count(std::begin(m_pokemonCaptured),
-                                     std::end(m_pokemonCaptured), true);
+      int capturedCount = 0;
       ImGui::Text("Pokémon capturados: %d", capturedCount);
       // Adicione mais informações se necessário
       ImGui::End();
@@ -471,10 +448,11 @@ void Window::updatePokeballPosition() {
       fmt::print("Pokebola parou!\n");
     }
 
-    for (int i = 0; i < m_pokemonPosition->length(); ++i) {
-      if (!m_pokemonCaptured[i]) {
+    // Verifica se colidiu com algum pokemon
+    for (int i = 0; i < m_num_pokemons; ++i) {
+      if (!m_pokemon[i].m_captured) {
         float distance =
-            glm::distance(m_pokeballPosition, m_pokemonPosition[i]);
+            glm::distance(m_pokeballPosition, m_pokemon[i].m_position);
 
         if ((distance - pokemonRadius - pokeballRadius) < 0.02f) {
           // Colisão detectada
@@ -483,7 +461,7 @@ void Window::updatePokeballPosition() {
           std::uniform_real_distribution<float> rd_poke_capture(0.0f, 1.0f);
 
           if (rd_poke_capture(m_randomEngine) < 0.45f) {
-            m_pokemonCaptured[i] = true;
+            m_pokemon[i].m_captured = true;
             m_currentState = PokemonState::Captured;
           } else {
             m_currentState = PokemonState::Escaped;
@@ -508,10 +486,10 @@ void Window::backToLive() {
 void Window::restartGame() {
   std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
 
-  for (int i = 0; i < m_pokemonPosition->length(); ++i) {
-    m_pokemonCaptured[i] = false;
-    m_pokemonPosition[i] = glm::vec3(rd_poke_position(m_randomEngine), 0,
-                                     rd_poke_position(m_randomEngine));
+  for (int i = 0; i < m_num_pokemons; ++i) {
+    m_pokemon[i].m_captured = false;
+    m_pokemon[i].m_position = glm::vec3(rd_poke_position(m_randomEngine), 0,
+                                        rd_poke_position(m_randomEngine));
   }
   m_pokeballLaunched = false;
 
