@@ -57,6 +57,13 @@ void Window::onEvent(SDL_Event const &event) {
 void Window::onCreate() {
   auto const &assetsPath{abcg::Application::getAssetsPath()};
 
+  // Load a new font
+  auto const filename{assetsPath + "Inconsolata-Medium.ttf"};
+  m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(filename.c_str(), 60.0f);
+  if (m_font == nullptr) {
+    throw abcg::RuntimeError("Cannot load font file");
+  }
+
   abcg::glClearColor(0, 0, 0, 1);
 
   // Enable depth buffering
@@ -319,7 +326,60 @@ void Window::onPaint() {
   abcg::glUseProgram(0);
 }
 
-void Window::onPaintUI() { abcg::OpenGLWindow::onPaintUI(); }
+void Window::onPaintUI() {
+  abcg::OpenGLWindow::onPaintUI();
+  {
+    static auto firstTime{true};
+    if (firstTime) {
+      ImGui::SetNextWindowPos(ImVec2(5, 80));
+      firstTime = false;
+    }
+
+    ImGui::Begin("Configurações do jogo");
+
+    // ImVec4 bgSpeed =
+    //     ImVec4(m_current_color[0], m_current_color[1], m_current_color[2],
+    //     1);
+
+    // ImGui::PushItemWidth(150);
+    // ImGui::Button("Voltar a Pokebola", ImVec2(-1, 30));
+    // ImGui::PopItemWidth();
+
+    if (ImGui::Button("Reiniciar", ImVec2(-1, 30))) {
+      std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
+
+      for (int i = 0; i < m_pokemonPosition->length(); ++i) {
+        m_pokemonCaptured[i] = false;
+        m_pokemonPosition[i] = glm::vec3(rd_poke_position(m_randomEngine), 0,
+                                         rd_poke_position(m_randomEngine));
+      }
+      m_pokeballLaunched = false;
+    }
+    ImGui::End();
+
+    // TEXT WINDOW
+    auto const size{ImVec2(300, 85)};
+    auto const position{ImVec2((m_viewportSize.x - size.x) / 2.0f,
+                               (m_viewportSize.y - size.y) / 2.0f)};
+    ImGui::SetNextWindowPos(position);
+    ImGui::SetNextWindowSize(size);
+    ImGuiWindowFlags const flags{ImGuiWindowFlags_NoBackground |
+                                 ImGuiWindowFlags_NoTitleBar |
+                                 ImGuiWindowFlags_NoInputs};
+    ImGui::Begin(" ", nullptr, flags);
+    ImGui::PushFont(m_font);
+
+    if (m_currentState == PokemonState::Captured) {
+      ImGui::Text("Capturado!");
+
+    } else if (m_currentState == PokemonState::Escaped) {
+      ImGui::Text("Escapou!");
+    }
+
+    ImGui::PopFont();
+    ImGui::End();
+  }
+}
 
 void Window::onResize(glm::ivec2 const &size) {
   m_viewportSize = size;
@@ -349,6 +409,8 @@ void Window::onUpdate() {
 
 void Window::launchPokeball() {
   if (!m_pokeballLaunched) {
+    m_currentState = PokemonState::Live;
+
     fmt::print("Pokebola vai!\n");
 
     m_pokeballPosition = m_camera.getEyePosition();
@@ -379,12 +441,6 @@ void Window::updatePokeballPosition() {
       fmt::print("Pokebola parou!\n");
     }
 
-    // fmt::print("\nx: {} y: {} z: {}\n", m_pokeballPosition.x,
-    //            m_pokeballPosition.y, m_pokeballPosition.z);
-
-    // Verifica se colidiu com algum Pokémon
-    // raio de colisao
-
     for (int i = 0; i < m_pokemonPosition->length(); ++i) {
       if (!m_pokemonCaptured[i]) {
         float distance =
@@ -398,10 +454,13 @@ void Window::updatePokeballPosition() {
 
           if (rd_poke_capture(m_randomEngine) < 0.45f) {
             m_pokemonCaptured[i] = true;
-            fmt::print("Pokémon {} capturado!\n", i + 1);
+            m_currentState = PokemonState::Captured;
           } else {
-            fmt::print("Pokémon {} escapou!\n", i + 1);
+            m_currentState = PokemonState::Escaped;
           }
+
+          std::thread backToLiveThread(&Window::backToLive, this);
+          backToLiveThread.detach();
 
           m_pokeballLaunched = false;
           break;
@@ -409,4 +468,9 @@ void Window::updatePokeballPosition() {
       }
     }
   }
+}
+
+void Window::backToLive() {
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  m_currentState = PokemonState::Live;
 }

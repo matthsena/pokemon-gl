@@ -7,6 +7,8 @@
 #include "ground.hpp"
 #include <random>
 #include <tuple>
+#include <thread>
+#include <chrono>
 
 struct Vertex {
   glm::vec3 position;
@@ -26,6 +28,8 @@ protected:
 
 private:
   glm::ivec2 m_viewportSize{};
+
+  ImFont *m_font{};
 
   GLuint m_VAO{};
   GLuint m_VBO{};
@@ -71,9 +75,14 @@ private:
   glm::vec3 m_pokeballVelocity{};
   bool m_pokeballLaunched{false};
 
+  enum class PokemonState {Captured, Escaped, Live};
+  PokemonState m_currentState{PokemonState::Live};
+
   void launchPokeball();
   void updatePokeballPosition();
   // void checkPokemonCapture();
+
+  void backToLive();
 };
 
 #endif
