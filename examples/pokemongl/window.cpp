@@ -16,6 +16,10 @@ void Window::onEvent(SDL_Event const &event) {
       launchPokeball();
     }
 
+    if (event.key.keysym.sym == SDLK_TAB) {
+      m_pokeballLaunched = false;
+    }
+
     if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_w)
       m_dollySpeed = 1.0f;
     if (event.key.keysym.sym == SDLK_DOWN || event.key.keysym.sym == SDLK_s)
@@ -361,19 +365,25 @@ void Window::updatePokeballPosition() {
   if (m_pokeballLaunched) {
     auto const deltaTime{gsl::narrow_cast<float>(getDeltaTime())};
 
+    const float pokeballRadius = 0.1f;
+    const float pokemonRadius = 0.5f;
+
     m_pokeballPosition += m_pokeballVelocity * deltaTime;
 
     // Verifica se saiu da tela
-    // ARRUMAR POKEBOLA QUANDO SAIR DA TELA
-    if (m_pokeballPosition.x < -1.0f || m_pokeballPosition.x > 1.0f) {
+    if ((m_pokeballPosition.x - pokeballRadius) < -5.0f ||
+        (m_pokeballPosition.x - pokeballRadius) > 5.0f ||
+        (m_pokeballPosition.z - pokeballRadius) < -5.0f ||
+        (m_pokeballPosition.z - pokeballRadius) > 5.0f) {
       m_pokeballLaunched = false;
       fmt::print("Pokebola parou!\n");
     }
 
+    // fmt::print("\nx: {} y: {} z: {}\n", m_pokeballPosition.x,
+    //            m_pokeballPosition.y, m_pokeballPosition.z);
+
     // Verifica se colidiu com algum Pokémon
     // raio de colisao
-    const float pokeballRadius = 0.1f;
-    const float pokemonRadius = 0.5f;
 
     for (int i = 0; i < m_pokemonPosition->length(); ++i) {
       if (!m_pokemonCaptured[i]) {
