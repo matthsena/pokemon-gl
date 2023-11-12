@@ -5,10 +5,10 @@
 
 #include "camera.hpp"
 #include "ground.hpp"
-#include <random>
-#include <tuple>
-#include <thread>
 #include <chrono>
+#include <random>
+#include <thread>
+#include <tuple>
 
 struct Vertex {
   glm::vec3 position;
@@ -27,6 +27,9 @@ protected:
   void onUpdate() override;
 
 private:
+  bool m_showPokedex{false};
+  bool m_restarted{false};
+
   glm::ivec2 m_viewportSize{};
 
   ImFont *m_font{};
@@ -75,7 +78,7 @@ private:
   glm::vec3 m_pokeballVelocity{};
   bool m_pokeballLaunched{false};
 
-  enum class PokemonState {Captured, Escaped, Live};
+  enum class PokemonState { Captured, Escaped, Live };
   PokemonState m_currentState{PokemonState::Live};
 
   void launchPokeball();
@@ -83,6 +86,7 @@ private:
   // void checkPokemonCapture();
 
   void backToLive();
+  void restartGame();
 };
 
 #endif

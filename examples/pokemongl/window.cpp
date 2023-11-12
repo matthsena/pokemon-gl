@@ -16,6 +16,15 @@ void Window::onEvent(SDL_Event const &event) {
       launchPokeball();
     }
 
+    if (event.key.keysym.sym == SDLK_b) {
+      m_showPokedex = !m_showPokedex;
+    }
+
+    if (event.key.keysym.sym == SDLK_r) {
+      std::thread restartGameThread(&Window::restartGame, this);
+      restartGameThread.detach();
+    }
+
     if (event.key.keysym.sym == SDLK_TAB) {
       m_pokeballLaunched = false;
     }
@@ -59,7 +68,7 @@ void Window::onCreate() {
 
   // Load a new font
   auto const filename{assetsPath + "Inconsolata-Medium.ttf"};
-  m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(filename.c_str(), 60.0f);
+  m_font = ImGui::GetIO().Fonts->AddFontFromFileTTF(filename.c_str(), 30.0f);
   if (m_font == nullptr) {
     throw abcg::RuntimeError("Cannot load font file");
   }
@@ -85,16 +94,14 @@ void Window::onCreate() {
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
 
   // Load model
-  //auto const [vertices_pokemon, indices_pokemon] =
+  // auto const [vertices_pokemon, indices_pokemon] =
   //    loadModelFromFile(assetsPath + "charmander.obj");
-  //m_vertices = vertices_pokemon;
-  //m_indices = indices_pokemon;
+  // m_vertices = vertices_pokemon;
+  // m_indices = indices_pokemon;
 
-   // Lista de modelos .obj disponíveis
+  // Lista de modelos .obj disponíveis
   std::vector<std::string> modelPaths = {
-      "charmander.obj",
-      "bulbasaur.obj",
-      "pikachu.obj",
+      "charmander.obj", "bulbasaur.obj", "pikachu.obj",
       // Adicione outros modelos aqui...
   };
 
@@ -110,8 +117,6 @@ void Window::onCreate() {
       loadModelFromFile(selectedModelPath);
   m_vertices = vertices_pokemon;
   m_indices = indices_pokemon;
-
-
 
   // Generate VBO
   abcg::glGenBuffers(1, &m_VBO);
@@ -205,8 +210,6 @@ void Window::onCreate() {
   m_pokemonPosition[2] = glm::vec3(rd_poke_position(m_randomEngine), 0,
                                    rd_poke_position(m_randomEngine));
 }
-
-
 
 // https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
 std::tuple<std::vector<Vertex>, std::vector<GLuint>>
@@ -354,34 +357,6 @@ void Window::onPaint() {
 void Window::onPaintUI() {
   abcg::OpenGLWindow::onPaintUI();
   {
-    static auto firstTime{true};
-    if (firstTime) {
-      ImGui::SetNextWindowPos(ImVec2(5, 80));
-      firstTime = false;
-    }
-
-    ImGui::Begin("Configurações do jogo");
-
-    // ImVec4 bgSpeed =
-    //     ImVec4(m_current_color[0], m_current_color[1], m_current_color[2],
-    //     1);
-
-    // ImGui::PushItemWidth(150);
-    // ImGui::Button("Voltar a Pokebola", ImVec2(-1, 30));
-    // ImGui::PopItemWidth();
-
-    if (ImGui::Button("Reiniciar", ImVec2(-1, 30))) {
-      std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
-
-      for (int i = 0; i < m_pokemonPosition->length(); ++i) {
-        m_pokemonCaptured[i] = false;
-        m_pokemonPosition[i] = glm::vec3(rd_poke_position(m_randomEngine), 0,
-                                         rd_poke_position(m_randomEngine));
-      }
-      m_pokeballLaunched = false;
-    }
-    ImGui::End();
-
     // TEXT WINDOW
     auto const size{ImVec2(300, 85)};
     auto const position{ImVec2((m_viewportSize.x - size.x) / 2.0f,
@@ -394,15 +369,45 @@ void Window::onPaintUI() {
     ImGui::Begin(" ", nullptr, flags);
     ImGui::PushFont(m_font);
 
+    std::string text = "";
+    float windowWidth = ImGui::GetWindowWidth();
+    float textWidth = 0;
+
+    // https://stackoverflow.com/questions/64653747/how-to-center-align-text-horizontally
     if (m_currentState == PokemonState::Captured) {
-      ImGui::Text("Capturado!");
+      text = "Capturado!";
+      textWidth = ImGui::CalcTextSize(text.c_str()).x;
+      ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+      ImGui::TextUnformatted(text.c_str());
 
     } else if (m_currentState == PokemonState::Escaped) {
-      ImGui::Text("Escapou!");
+      text = "Escapou!";
+      textWidth = ImGui::CalcTextSize(text.c_str()).x;
+      ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+      ImGui::TextUnformatted(text.c_str());
+    }
+
+    if (m_restarted == true) {
+      text = "Jogo reiniciado";
+      textWidth = ImGui::CalcTextSize(text.c_str()).x;
+      ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+      ImGui::TextUnformatted(text.c_str());
     }
 
     ImGui::PopFont();
     ImGui::End();
+
+    text = "";
+
+    // JANELA DA POKEDEX
+    if (m_showPokedex) {
+      ImGui::Begin("Pokédex", nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
+      int capturedCount = std::count(std::begin(m_pokemonCaptured),
+                                     std::end(m_pokemonCaptured), true);
+      ImGui::Text("Pokémon capturados: %d", capturedCount);
+      // Adicione mais informações se necessário
+      ImGui::End();
+    }
   }
 }
 
@@ -498,4 +503,19 @@ void Window::updatePokeballPosition() {
 void Window::backToLive() {
   std::this_thread::sleep_for(std::chrono::seconds(1));
   m_currentState = PokemonState::Live;
+}
+
+void Window::restartGame() {
+  std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
+
+  for (int i = 0; i < m_pokemonPosition->length(); ++i) {
+    m_pokemonCaptured[i] = false;
+    m_pokemonPosition[i] = glm::vec3(rd_poke_position(m_randomEngine), 0,
+                                     rd_poke_position(m_randomEngine));
+  }
+  m_pokeballLaunched = false;
+  m_restarted = true;
+
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  m_restarted = false;
 }
