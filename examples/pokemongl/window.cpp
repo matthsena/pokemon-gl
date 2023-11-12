@@ -78,10 +78,33 @@ void Window::onCreate() {
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
 
   // Load model
+  //auto const [vertices_pokemon, indices_pokemon] =
+  //    loadModelFromFile(assetsPath + "charmander.obj");
+  //m_vertices = vertices_pokemon;
+  //m_indices = indices_pokemon;
+
+   // Lista de modelos .obj disponíveis
+  std::vector<std::string> modelPaths = {
+      "charmander.obj",
+      "bulbasaur.obj",
+      "pikachu.obj",
+      // Adicione outros modelos aqui...
+  };
+
+  // Seed para a geração de números aleatórios
+  std::srand(std::time(0));
+
+  // Seleciona aleatoriamente um modelo da lista
+  int randomModelIndex = std::rand() % modelPaths.size();
+  std::string selectedModelPath = assetsPath + modelPaths[randomModelIndex];
+
+  // Carrega o modelo selecionado
   auto const [vertices_pokemon, indices_pokemon] =
-      loadModelFromFile(assetsPath + "charmander.obj");
+      loadModelFromFile(selectedModelPath);
   m_vertices = vertices_pokemon;
   m_indices = indices_pokemon;
+
+
 
   // Generate VBO
   abcg::glGenBuffers(1, &m_VBO);
@@ -175,6 +198,8 @@ void Window::onCreate() {
   m_pokemonPosition[2] = glm::vec3(rd_poke_position(m_randomEngine), 0,
                                    rd_poke_position(m_randomEngine));
 }
+
+
 
 // https://stackoverflow.com/questions/321068/returning-multiple-values-from-a-c-function
 std::tuple<std::vector<Vertex>, std::vector<GLuint>>
