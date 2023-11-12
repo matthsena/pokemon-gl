@@ -199,7 +199,7 @@ void Window::onCreate() {
       std::chrono::steady_clock::now().time_since_epoch().count());
 
   std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
-  std::uniform_int_distribution<int> rd_poke_model(0, 1);
+  std::uniform_int_distribution<int> rd_poke_model(0, m_modelPaths.size() - 1);
 
   // inicializando pokemons
   for (int i = 0; i < m_num_pokemons; ++i) {
@@ -380,8 +380,14 @@ void Window::onPaintUI() {
     // JANELA DA POKEDEX
     if (m_showPokedex) {
       ImGui::Begin("Pokédex", nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
-      int capturedCount = 0;
-      ImGui::Text("Pokémon capturados: %d", capturedCount);
+      ImGui::Text("Pokémons capturados:");
+
+      for (const auto &pokemon : m_pokedex_pokemons) {
+        // ImGui::Text(pokemon.c_str());
+      ImGui::TextUnformatted(pokemon.c_str());
+
+      }
+
       // Adicione mais informações se necessário
       ImGui::End();
     }
@@ -462,6 +468,8 @@ void Window::updatePokeballPosition() {
 
           if (rd_poke_capture(m_randomEngine) < 0.45f) {
             m_pokemon[i].m_captured = true;
+            m_pokedex_pokemons.insert(m_pokemon[i].m_name);
+
             m_currentState = PokemonState::Captured;
           } else {
             m_currentState = PokemonState::Escaped;
@@ -492,6 +500,8 @@ void Window::restartGame() {
                                         rd_poke_position(m_randomEngine));
   }
   m_pokeballLaunched = false;
+  m_pokedex_pokemons.clear();
+
 
   m_restarted = true;
   std::this_thread::sleep_for(std::chrono::seconds(1));

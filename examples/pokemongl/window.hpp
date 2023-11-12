@@ -10,6 +10,7 @@
 #include <thread>
 #include <tuple>
 #include <unordered_map>
+#include <set>
 
 struct Vertex {
   glm::vec3 position;
@@ -46,7 +47,8 @@ private:
 
   int m_num_pokemons{5};
   Pokemon m_pokemon[5];
-  
+  std::set<std::string> m_pokedex_pokemons;
+
   bool m_showPokedex{false};
   bool m_restarted{false};
 
