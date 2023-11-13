@@ -135,8 +135,7 @@ Também foram definidas as setas e as teclas AWSD para o comando de movimentaç�
 
 A posição e o tipo de Pokémon que sera renderizado é construído pela lógica abaixo, onde as duas definições são feitas de forma aleatória pela função `rd_poke_position` e `rd_poke_model`, respectivamente:
 
-```
-c++
+```c++
 // Definindo posição inicial dos pokemons
   m_randomEngine.seed(
       std::chrono::steady_clock::now().time_since_epoch().count());
