@@ -29,7 +29,9 @@ A classe Window é definida e herda da classe abcg::OpenGLWindow, que é uma par
 Variáveis importantes:
 
 `m_pokemons_list`: Variável map que guarda os nomes de Pokémons capturados. Essa variável é utilizada para gerar a opção de Pokédex onde é listado os Pokémons capturados.
+
 `m_modelPaths`: Variável que armazena uma lista dos arquivos .obj que podem ser renderizados na aplicação de forma aleatória.
+
 `m_font`: Variável utilizada para a renderização dos textos que são apresentados na tela (Escapou!, Capturado!, Jogo Reiniciado)
 
 
@@ -42,12 +44,11 @@ Espaço: Lança a pokébola através da chamada de `launchPokeball`
 R: Reinicia o jogo através da chamada de `restartGameThread` 
 B: Abre o Pokédex com a listagem de Pokémons capturados a partir de `m_showPokedex`
 
-Também foram definidas as setas para o comando de movimentação do usuário em primeira pessoa.
+Também foram definidas as setas e as teclas AWSD para o comando de movimentação do usuário em primeira pessoa.
 
 `onCreate`: Função chamada para inicializar a aplicação. Os shaders são chamados nos arquivos `lookat.frag` e `lookat.vert`. Além disso, no onCreate é aplicada a configuração do nome e as cores dos Pokémons, conforme o trecho de código abaixo:
 
 <pre>
-```
   for (int i = 0; i < 2; i++) {
     auto color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     std::string name = "";
@@ -112,16 +113,33 @@ Também foram definidas as setas para o comando de movimentação do usuário em
         Pokemon{tmp_VAO,         tmp_VBO, tmp_EBO, vertices_pokemon,
                 indices_pokemon, color,   name};
   }
-```
 </pre>
 
+
+A posição e o tipo de Pokémon que sera renderizado é construído pela lógica abaixo, onde as duas definições são feitas de forma aleatória pela função `rd_poke_position` e `rd_poke_model`, respectivamente:
+
+<pre>
+// Definindo posição inicial dos pokemons
+  m_randomEngine.seed(
+      std::chrono::steady_clock::now().time_since_epoch().count());
+
+  std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
+  std::uniform_int_distribution<int> rd_poke_model(0, m_modelPaths.size() - 1);
+
+  // inicializando pokemons
+  for (int i = 0; i < m_num_pokemons; ++i) {
+    m_pokemon[i] = m_pokemons_list[m_modelPaths[rd_poke_model(m_randomEngine)]];
+    m_pokemon[i].m_position = glm::vec3(rd_poke_position(m_randomEngine), 0,
+                                        rd_poke_position(m_randomEngine));
+  }
+}
+</pre>
 
 
 
 `onPaint`: Função que renderiza a cena, utilizando shaders para renderizar os Pokémons, a Pokébola e o chão. A renderização de cada Pokémon acontece conforme o código abaixo:
 
 <pre>
-```
 // renderizando cada pokemon
   for (int i = 0; i < m_num_pokemons; ++i) {
     auto selectedPokemon = m_pokemon[i];
@@ -144,13 +162,11 @@ Também foram definidas as setas para o comando de movimentação do usuário em
                            GL_UNSIGNED_INT, nullptr);
     }
   }
-```
 </pre>
 
 `onPaintUI`: Define uma interface de usuário (UI) usando a biblioteca ImGui. A ImGui é utizada no `onPaintUI` para exibir as frases na tela durante a execução da aplicação, conforme o código abaixo:
 
 <pre>
-```
     if (m_currentState == PokemonState::Captured) {
       text = "Capturado!";
       textWidth = ImGui::CalcTextSize(text.c_str()).x;
@@ -180,8 +196,6 @@ Também foram definidas as setas para o comando de movimentação do usuário em
     if (m_showPokedex) {
       ImGui::Begin("Pokédex", nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
       ImGui::Text("Pokémons capturados:");
-
-```
 </pre>
 
 `onResize`: É chamado quando a janela é redimensionada e atualiza o tamanho do viewport da câmera.
