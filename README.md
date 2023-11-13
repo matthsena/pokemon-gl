@@ -65,7 +65,8 @@ Também foram definidas as setas e as teclas AWSD para o comando de movimentaç�
 
 `onCreate`: Função chamada para inicializar a aplicação. Os shaders são chamados nos arquivos `lookat.frag` e `lookat.vert`. Além disso, no onCreate é aplicada a configuração do nome e as cores dos Pokémons, conforme o trecho de código abaixo:
 
-<pre>
+```
+c++
   for (int i = 0; i < 2; i++) {
     auto color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     std::string name = "";
@@ -130,12 +131,13 @@ Também foram definidas as setas e as teclas AWSD para o comando de movimentaç�
         Pokemon{tmp_VAO,         tmp_VBO, tmp_EBO, vertices_pokemon,
                 indices_pokemon, color,   name};
   }
-</pre>
+```
 
 
 A posição e o tipo de Pokémon que sera renderizado é construído pela lógica abaixo, onde as duas definições são feitas de forma aleatória pela função `rd_poke_position` e `rd_poke_model`, respectivamente:
 
-<pre>
+```
+c++
 // Definindo posição inicial dos pokemons
   m_randomEngine.seed(
       std::chrono::steady_clock::now().time_since_epoch().count());
@@ -149,14 +151,15 @@ A posição e o tipo de Pokémon que sera renderizado é construído pela lógic
     m_pokemon[i].m_position = glm::vec3(rd_poke_position(m_randomEngine), 0,
                                         rd_poke_position(m_randomEngine));
   }
-}
-</pre>
+
+```
 
 
 
 `onPaint`: Função que renderiza a cena, utilizando shaders para renderizar os Pokémons, a Pokébola e o chão. A renderização de cada Pokémon acontece conforme o código abaixo:
 
-<pre>
+```
+c++
 // renderizando cada pokemon
   for (int i = 0; i < m_num_pokemons; ++i) {
     auto selectedPokemon = m_pokemon[i];
@@ -179,11 +182,12 @@ A posição e o tipo de Pokémon que sera renderizado é construído pela lógic
                            GL_UNSIGNED_INT, nullptr);
     }
   }
-</pre>
+```
 
 `onPaintUI`: Define uma interface de usuário (UI) usando a biblioteca ImGui. A ImGui é utizada no `onPaintUI` para exibir as frases na tela durante a execução da aplicação, conforme o código abaixo:
 
-<pre>
+```
+c++
     if (m_currentState == PokemonState::Captured) {
       text = "Capturado!";
       textWidth = ImGui::CalcTextSize(text.c_str()).x;
@@ -213,7 +217,8 @@ A posição e o tipo de Pokémon que sera renderizado é construído pela lógic
     if (m_showPokedex) {
       ImGui::Begin("Pokédex", nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
       ImGui::Text("Pokémons capturados:");
-</pre>
+    }
+```
 
 `onResize`: É chamado quando a janela é redimensionada e atualiza o tamanho do viewport da câmera.
 
