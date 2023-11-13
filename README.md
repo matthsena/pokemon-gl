@@ -1,113 +1,219 @@
-# ABCg
+# COMPUTAÇÃO GRÁFICA - Aplicação Interativa 2D
 
-![build workflow](https://github.com/hbatagelo/abcg/actions/workflows/build.yml/badge.svg)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/hbatagelo/abcg)](https://github.com/hbatagelo/abcg/releases/latest)
+## Integrantes 
 
-Development framework accompanying the course [MCTA008-17 Computer Graphics](http://professor.ufabc.edu.br/~harlen.batagelo/cg/) at [UFABC](https://www.ufabc.edu.br/).
+**Nome:** Gabriel Fernandes &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; **RA:** 11201720718
+<br/>
+**Nome:** Matheus Alexandre de Sena    &nbsp; &nbsp;  **RA:** 11201720166
 
-[Documentation](https://hbatagelo.github.io/abcg/abcg/doc/html/) | [Release notes](CHANGELOG.md)
+## Link para WebAssembly
 
-ABCg is a lightweight C++ framework that simplifies the development of 3D graphics applications based on [OpenGL](https://www.opengl.org), [OpenGL ES](https://www.khronos.org), [WebGL](https://www.khronos.org/webgl/), and [Vulkan](https://www.vulkan.org). It is designed for the tutorials and assignments of the course "MCTA008-17 Computer Graphics" taught at Federal University of ABC (UFABC).
+https://gfernandesdev.github.io/dvdanimation/dvdanimation/index.html
 
-***
 
-## Main features
+## Resumo da aplicação
 
-*   Supported platforms: Linux, macOS, Windows, WebAssembly.
-*   Supported backends: OpenGL 3.3+, OpenGL ES 3.0+, WebGL 2.0 (via Emscripten), Vulkan 1.3.
-*   Applications that use the common subset of functions between OpenGL 3.3 and OpenGL ES 3.0 can be built for WebGL 2.0 using the same source code.
-*   OpenGL functions can be qualified with the `abcg::` namespace to enable throwing exceptions with descriptive GL error messages that include the source code location.
-*   Includes helper classes and functions for loading textures (using [SDL\_image](https://www.libsdl.org/projects/SDL_image/)), loading OBJ 3D models (using [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader)), and compiling GLSL shaders to SPIR-V with [glslang](https://github.com/KhronosGroup/glslang).
+O projeto `pokemon-gl` teve como inspiração o jogo Pokemon GO, muito jogado desde seu lançamento em 2016.
+Neste projeto, o usuário da aplicação está em um cenário em primeira pessoa, onde ele procura Pokemons pelo espaço e faz o lançamento de pokebolas sob eles, podendo fazer a captura das espécies. Como base para a construção foi utilizado o projeto LookAt demonstrado durantes as aulas.  
 
-***
+![Alt text](image.png)
 
-## Requirements
+Para este projeto, foi utilizado a biblioteca `ABCg` (https://github.com/hbatagelo/abcg) disponibilizada no curso de Computação Gráfica 2023.3 na Universidade Federal do ABC.  
 
-The following minimum requirements are shared among all platforms:
+## Visão geral dos arquivos do projeto:
 
-*   [CMake](https://cmake.org/) 3.21.
-*   A C++ compiler with at least partial support for C++20 (tested with GCC 12, Clang 16, MSVC 17, and emcc 3.1.42).
-*   A system with support for OpenGL 3.3 (OpenGL backend) or Vulkan 1.3 (Vulkan backend). Conformant software rasterizers such as Mesa's [Gallium llvmpipe](https://docs.mesa3d.org/drivers/llvmpipe.html) and lavapipe (post Jun 2022) are supported. Mesa's [D3D12](https://devblogs.microsoft.com/directx/directx-heart-linux/) backend on [WSL 2.0](https://docs.microsoft.com/en-us/windows/wsl/install) is supported as well.
+* window.hpp:
 
-For WebAssembly:
+A classe Window é definida e herda da classe abcg::OpenGLWindow, que é uma parte da biblioteca abcgOpenGL para criar janelas gráficas.
 
-*   [Emscripten](https://emscripten.org/).
-*   A browser with support for WebGL 2.0.
+Variáveis importantes:
 
-For building desktop applications:
+`m_pokemons_list`: Variável map que guarda os nomes de Pokémons capturados. Essa variável é utilizada para gerar a opção de Pokédex onde é listado os Pokémons capturados.
+`m_modelPaths`: Variável que armazena uma lista dos arquivos .obj que podem ser renderizados na aplicação de forma aleatória.
+`m_font`: Variável utilizada para a renderização dos textos que são apresentados na tela (Escapou!, Capturado!, Jogo Reiniciado)
 
-*   [SDL](https://www.libsdl.org/) 2.0.
-*   [SDL\_image](https://www.libsdl.org/projects/SDL_image/) 2.0.
-*   [GLEW](http://glew.sourceforge.net/) 2.2.0 (required for OpenGL-based applications).
-*   [Vulkan](https://www.lunarg.com/vulkan-sdk/) 1.3 (required for Vulkan-based applications).
 
-Desktop dependencies can be resolved automatically with [Conan](https://conan.io/), but it is disabled by default. To use Conan, install Conan 1.47 or a later 1.\* version (ABCg is not compatible with Conan 2.0!) and then configure CMake with `-DENABLE_CONAN=ON`.
+* window.cpp:
 
-The default renderer backend is OpenGL (CMake option `GRAPHICS_API=OpenGL`). To use the Vulkan backend, configure CMake with `-DGRAPHICS_API=Vulkan`.
+O arquivo window.cpp é composto pelas funções utilizadas para a construção lógica da aplicação renderizada. Abaixo segue um resumo descritivo de cada função presente no arquivo:
 
-***
+`onEvent`: Função que manipula os eventos SDL, como pressionar as teclas do teclado. 
+Espaço: Lança a pokébola através da chamada de `launchPokeball`
+R: Reinicia o jogo através da chamada de `restartGameThread` 
+B: Abre o Pokédex com a listagem de Pokémons capturados a partir de `m_showPokedex`
 
-## Installation and usage
+Também foram definidas as setas para o comando de movimentação do usuário em primeira pessoa.
 
-Start by cloning the repository:
+`onCreate`: Função chamada para inicializar a aplicação. Os shaders são chamados nos arquivos `lookat.frag` e `lookat.vert`. Além disso, no onCreate é aplicada a configuração do nome e as cores dos Pokémons, conforme o trecho de código abaixo:
 
-    # Get abcg repo
-    git clone https://github.com/hbatagelo/abcg.git
+<pre>
+```
+  for (int i = 0; i < 2; i++) {
+    auto color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    std::string name = "";
 
-    # Enter the directory
-    cd abcg
+    if (m_modelPaths[i] == "charmander.obj") {
+      color = glm::vec4(1.0f, 0.5f, 0.0f, 1.0f);
+      name = "Charmander";
+    } else if (m_modelPaths[i] == "bulbasaur.obj") {
+      color = glm::vec4(0.2f, 0.6f, 0.3f, 1.0f);
+      name = "Bulbasaur";
+    } else if (m_modelPaths[i] == "squirtle.obj") {
+      color = glm::vec4(0.0f, 0.5f, 1.0f, 1.0f);
+      name = "Squirtle";
+    } else if (m_modelPaths[i] == "mew.obj") {
+      color = glm::vec4(0.8f, 0.0f, 0.8f, 1.0f);
+      name = "Mew";
+    }
 
-Follow the instructions below to build the "Hello, World!" sample located in `abcg/examples/helloworld`.
+    auto const [vertices_pokemon, indices_pokemon] =
+        loadModelFromFile(assetsPath + m_modelPaths[i]);
 
-### Windows
+    GLuint tmp_VAO{};
+    GLuint tmp_VBO{};
+    GLuint tmp_EBO{};
 
-*   Run `build-vs.bat` for building with the Visual Studio 2022 toolchain.
-*   Run `build.bat` for building with GCC (MinGW-w64).
+    // Generate VBO
+    abcg::glGenBuffers(1, &tmp_VBO);
+    abcg::glBindBuffer(GL_ARRAY_BUFFER, tmp_VBO);
+    abcg::glBufferData(GL_ARRAY_BUFFER,
+                       sizeof(vertices_pokemon.at(0)) * vertices_pokemon.size(),
+                       vertices_pokemon.data(), GL_STATIC_DRAW);
+    abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-`build-vs.bat` and `build.bat` accept two optional arguments: (1) the build type, which is `Release` by default, and (2) an extra CMake option. For example, for a `Debug` build with `-DENABLE_CONAN=ON` using VS 2022, run
+    // Generate EBO
+    abcg::glGenBuffers(1, &tmp_EBO);
+    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tmp_EBO);
+    abcg::glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+                       sizeof(indices_pokemon.at(0)) * indices_pokemon.size(),
+                       indices_pokemon.data(), GL_STATIC_DRAW);
+    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    build-vs.bat Debug -DENABLE_CONAN=ON
+    // Create VAO
+    abcg::glGenVertexArrays(1, &tmp_VAO);
 
-### Linux and macOS
+    // Bind vertex attributes to current VAO
+    abcg::glBindVertexArray(tmp_VAO);
 
-Run `./build.sh`.
+    abcg::glBindBuffer(GL_ARRAY_BUFFER, tmp_VBO);
+    auto const positionAttribute{
+        abcg::glGetAttribLocation(m_program, "inPosition")};
+    abcg::glEnableVertexAttribArray(positionAttribute);
+    abcg::glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE,
+                                sizeof(Vertex), nullptr);
+    abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-The script accepts two optional arguments: (1) the build type, which is `Release` by default, and (2) an extra CMake option. For example, for a `Debug` build with `-DENABLE_CONAN=ON`, run
+    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tmp_EBO);
 
-    ./build.sh Debug -DENABLE_CONAN=ON
+    // End of binding to current VAO
+    abcg::glBindVertexArray(0);
 
-### WebAssembly
+    m_pokemons_list[m_modelPaths[i]] =
+        Pokemon{tmp_VAO,         tmp_VBO, tmp_EBO, vertices_pokemon,
+                indices_pokemon, color,   name};
+  }
+```
+</pre>
 
-1.  Run `build-wasm.bat` (Windows) or `./build-wasm.sh` (Linux/macOS).
-2.  Run `runweb.bat` (Windows) or `./runweb.sh` (Linux/macOS) for setting up a local web server.
-3.  Open <http://localhost:8080/helloworld.html>.
 
-***
 
-## Docker setup
 
-ABCg can be built in a [Docker](https://www.docker.com/) container. The Dockerfile provided is based on Ubuntu 22.04 and includes Emscripten.
+`onPaint`: Função que renderiza a cena, utilizando shaders para renderizar os Pokémons, a Pokébola e o chão. A renderização de cada Pokémon acontece conforme o código abaixo:
 
-1.  Create the Docker image (`abcg`):
+<pre>
+```
+// renderizando cada pokemon
+  for (int i = 0; i < m_num_pokemons; ++i) {
+    auto selectedPokemon = m_pokemon[i];
 
-        sudo docker build -t abcg .
+    abcg::glBindVertexArray(selectedPokemon.m_vao);
 
-2.  Create the container (`abcg_container`):
+    glm::mat4 model{1.0f};
+    // renderizacao condicional caso nao tenha sido capturado
+    if (selectedPokemon.m_captured == false) {
+      model = glm::translate(model, selectedPokemon.m_position);
+      model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0, 1, 0));
+      model = glm::scale(model, glm::vec3(0.02f));
 
-        sudo docker create -it \
-          -p 8080:8080 \
-          -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
-          -e DISPLAY \
-          --name abcg_container abcg
+      abcg::glUniformMatrix4fv(m_modelMatrixLocation, 1, GL_FALSE,
+                               &model[0][0]);
+      abcg::glUniform4f(m_colorLocation, selectedPokemon.m_color.r,
+                        selectedPokemon.m_color.g, selectedPokemon.m_color.b,
+                        selectedPokemon.m_color.a);
+      abcg::glDrawElements(GL_TRIANGLES, selectedPokemon.m_indices.size(),
+                           GL_UNSIGNED_INT, nullptr);
+    }
+  }
+```
+</pre>
 
-3.  Start the container:
+`onPaintUI`: Define uma interface de usuário (UI) usando a biblioteca ImGui. A ImGui é utizada no `onPaintUI` para exibir as frases na tela durante a execução da aplicação, conforme o código abaixo:
 
-        sudo docker start -ai abcg_container
+<pre>
+```
+    if (m_currentState == PokemonState::Captured) {
+      text = "Capturado!";
+      textWidth = ImGui::CalcTextSize(text.c_str()).x;
+      ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+      ImGui::TextUnformatted(text.c_str());
 
-    On NVIDIA GPUs, install the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) to allow the container to use the host's NVIDIA driver and X server. Expose the X server with `sudo xhost +local:root` before starting the container.
+    } else if (m_currentState == PokemonState::Escaped) {
+      text = "Escapou!";
+      textWidth = ImGui::CalcTextSize(text.c_str()).x;
+      ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+      ImGui::TextUnformatted(text.c_str());
+    }
 
-***
+    if (m_restarted == true) {
+      text = "Jogo reiniciado";
+      textWidth = ImGui::CalcTextSize(text.c_str()).x;
+      ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+      ImGui::TextUnformatted(text.c_str());
+    }
 
-## License
+    ImGui::PopFont();
+    ImGui::End();
 
-ABCg is licensed under the MIT License. See [LICENSE](https://github.com/hbatagelo/abcg/blob/main/LICENSE) for more information.
+    text = "";
+
+    // JANELA DA POKEDEX
+    if (m_showPokedex) {
+      ImGui::Begin("Pokédex", nullptr, ImGuiWindowFlags_NoFocusOnAppearing);
+      ImGui::Text("Pokémons capturados:");
+
+```
+</pre>
+
+`onResize`: É chamado quando a janela é redimensionada e atualiza o tamanho do viewport da câmera.
+
+`onDestroy`: É chamado quando a janela é destruída e é usado para limpar os recursos OpenGL.
+
+`onUpdate`: É chamado para atualizar a lógica do jogo a cada quadro, como a movimentação da câmera.
+
+`launchPokeball`: Chamada quando o jogador pressiona ESPAÇO para fazer o lançamento da Pokébola.
+
+`updatePokeballPosition`: Atualiza a posição da Pokébola durante o movimento.
+
+`backToLive`: Utilizada para atualizar as informações do jogo em tempo de execução.
+
+`restartGame`: Chamada para reiniciar o jogo.
+
+* main.cpp:
+
+O arquivo main.cpp inicia a aplicação, criando uma instância da classe Window e realizando as configurações da janela de exibição (width, height, title). Em seguida, inicia a aplicação com `app.run(window)`.
+
+* ground.cpp:
+
+O arquivo ground.cpp é composto pelas funções utilizadas na classe Ground, que são utilizadas para criar o VAO e VBO do chão.
+
+* ground.hpp: 
+
+O arquivo ground.hpp define a classe Ground que é utilizada para criação e renderização do chão.
+
+* camera.cpp: 
+
+O arquivo camera.cpp é composto pelas funções utilizadas na classe Camera para calcular as matrizes de projeção e visualização, bem como manipular a posição e orientação da câmera.
+
+* camera.hpp:
+
+O arquivo camera.hpp define a classe Camera que é usada para a visualização da cena pelo usuário.
