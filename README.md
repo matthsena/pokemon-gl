@@ -23,17 +23,17 @@ Para este projeto, foi utilizado a biblioteca `ABCg` (https://github.com/hbatage
 
 ESPAÇO: Dispara a Pokébola
 
-R: Reinicia o jogo
+**R**: Reinicia o jogo
 
-B: Abre o menu Pokédex, onde você pode ver os Pokémons capturados
+**B**: Abre o menu Pokédex, onde você pode ver os Pokémons capturados
 
-A: Movimenta para a esquerda
+**A / Seta esquerda**: Movimenta para a esquerda
 
-D: Movimenta para a direita
+**D / Seta para direita**: Movimenta para a direita
 
-W: Movimenta para frente
+**W / Seta para cima**: Movimenta para frente
 
-S: Movimenta para trás
+**S / Seta para baixo**: Movimenta para trás
 
 
 ## Visão geral da implementação:
@@ -42,18 +42,39 @@ S: Movimenta para trás
 
 A classe Window é definida e herda da classe abcg::OpenGLWindow, que é uma parte da biblioteca abcgOpenGL para criar janelas gráficas.
 
-Variáveis importantes:
-
-`m_pokemons_list`: Variável map que guarda os nomes de Pokémons capturados. Essa variável é utilizada para gerar a opção de Pokédex onde é listado os Pokémons capturados.
+### Variáveis importantes:
 
 `struct Pokemon`: Variável struct que armazena os VBOs, EBOs, nome e outras características de cada Pokémon. Dessa forma, não temos uma variável global para essas definições, mas uma para cada obj.
 
+```c++
+  struct Pokemon {
+    GLuint m_vao{};
+    GLuint m_vbo{};
+    GLuint m_ebo{};
+    std::vector<Vertex> m_vertices;
+    std::vector<GLuint> m_indices;
+    glm::vec4 m_color{};
+    std::string m_name{};
+    bool m_captured{false};
+    glm::vec3 m_position{0, 0, 0};
+  };
+```
+
+
+`m_pokemons_list`: Hashmap que guarda os dados de VAO, VBO, EBO, Vertices e Indices de cada Pokémon existente na lista de arquivos `.obj`.
+```c++
+std::unordered_map<std::string, Pokemon> m_pokemons_list;
+```
+
 `m_modelPaths`: Variável que armazena uma lista dos arquivos .obj que podem ser renderizados na aplicação de forma aleatória.
+```c++
+  std::vector<std::string> m_modelPaths = {"charmander.obj", "bulbasaur.obj"};
+```
 
 `m_font`: Variável utilizada para a renderização dos textos que são apresentados na tela (Escapou!, Capturado!, Jogo Reiniciado)
 
 
-* window.cpp:
+## window.cpp:
 
 O arquivo window.cpp é composto pelas funções utilizadas para a construção lógica da aplicação renderizada. Abaixo segue um resumo descritivo de cada função presente no arquivo:
 
@@ -243,23 +264,23 @@ Window::loadModelFromFile(std::string_view path) {
 
 `restartGame`: Chamada para reiniciar o jogo.
 
-* main.cpp:
+## main.cpp:
 
 O arquivo main.cpp inicia a aplicação, criando uma instância da classe Window e realizando as configurações da janela de exibição (width, height, title). Em seguida, inicia a aplicação com `app.run(window)`.
 
-* ground.cpp:
+## ground.cpp:
 
 O arquivo ground.cpp é composto pelas funções utilizadas na classe Ground, que são utilizadas para criar o VAO e VBO do chão.
 
-* ground.hpp: 
+## ground.hpp: 
 
 O arquivo ground.hpp define a classe Ground que é utilizada para criação e renderização do chão.
 
-* camera.cpp: 
+## camera.cpp: 
 
 O arquivo camera.cpp é composto pelas funções utilizadas na classe Camera para calcular as matrizes de projeção e visualização, bem como manipular a posição e orientação da câmera.
 
-* camera.hpp:
+## camera.hpp:
 
 O arquivo camera.hpp define a classe Camera que é usada para a visualização da cena pelo usuário.
 
