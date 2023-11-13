@@ -13,14 +13,31 @@ https://gfernandesdev.github.io/dvdanimation/dvdanimation/index.html
 
 ## Resumo da aplicação
 
-O projeto `pokemon-gl` teve como inspiração o jogo Pokemon GO, muito jogado desde seu lançamento em 2016.
-Neste projeto, o usuário da aplicação está em um cenário em primeira pessoa, onde ele procura Pokemons pelo espaço e faz o lançamento de pokebolas sob eles, podendo fazer a captura das espécies. Como base para a construção foi utilizado o projeto LookAt demonstrado durantes as aulas.  
+O projeto `pokemon-gl` teve como inspiração o jogo Pokémon GO, muito jogado desde seu lançamento em 2016.
+Neste projeto, o usuário da aplicação está em um cenário em primeira pessoa, onde ele procura Pokémons pelo espaço e faz o lançamento de pokebolas sob eles, podendo fazer a captura das espécies. Como base para a construção foi utilizado o projeto LookAt demonstrado durantes as aulas.  
 
 ![Alt text](image.png)
 
 Para este projeto, foi utilizado a biblioteca `ABCg` (https://github.com/hbatagelo/abcg) disponibilizada no curso de Computação Gráfica 2023.3 na Universidade Federal do ABC.  
 
-## Visão geral dos arquivos do projeto:
+## Comandos
+
+ESPAÇO: Dispara a Pokébola
+
+R: Reinicia o jogo
+
+B: Abre o menu Pokédex, onde você pode ver os Pokémons capturados
+
+A: Movimenta para a esquerda
+
+D: Movimenta para a direita
+
+W: Movimenta para frente
+
+S: Movimenta para trás
+
+
+## Visão geral da implementação:
 
 * window.hpp:
 
