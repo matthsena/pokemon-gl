@@ -8,7 +8,7 @@
 
 ## Link para WebAssembly
 
-https://gfernandesdev.github.io/dvdanimation/dvdanimation/index.html
+-- ADD AQUI O LINK
 
 
 ## Resumo da aplicação
