@@ -8,8 +8,7 @@
 
 ## Link para WebAssembly
 
--- ADD AQUI O LINK
-
+https://matthsena.github.io/pokemon-gl/pokemon-gl/
 
 ## Resumo da aplicação
 
@@ -47,6 +46,8 @@ Variáveis importantes:
 
 `m_pokemons_list`: Variável map que guarda os nomes de Pokémons capturados. Essa variável é utilizada para gerar a opção de Pokédex onde é listado os Pokémons capturados.
 
+`struct Pokemon`: Variável struct que armazena os VBOs, EBOs, nome e outras características de cada Pokémon. Dessa forma, não temos uma variável global para essas definições, mas uma para cada obj.
+
 `m_modelPaths`: Variável que armazena uma lista dos arquivos .obj que podem ser renderizados na aplicação de forma aleatória.
 
 `m_font`: Variável utilizada para a renderização dos textos que são apresentados na tela (Escapou!, Capturado!, Jogo Reiniciado)
@@ -76,12 +77,6 @@ Também foram definidas as setas e as teclas AWSD para o comando de movimentaç�
     } else if (m_modelPaths[i] == "bulbasaur.obj") {
       color = glm::vec4(0.2f, 0.6f, 0.3f, 1.0f);
       name = "Bulbasaur";
-    } else if (m_modelPaths[i] == "squirtle.obj") {
-      color = glm::vec4(0.0f, 0.5f, 1.0f, 1.0f);
-      name = "Squirtle";
-    } else if (m_modelPaths[i] == "mew.obj") {
-      color = glm::vec4(0.8f, 0.0f, 0.8f, 1.0f);
-      name = "Mew";
     }
 
     auto const [vertices_pokemon, indices_pokemon] =
@@ -122,10 +117,15 @@ Também foram definidas as setas e as teclas AWSD para o comando de movimentaç�
     abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tmp_EBO);
+...
+  
+  }
+```
 
-    // End of binding to current VAO
-    abcg::glBindVertexArray(0);
+Os VBOs e EBOs para cada Pokémon é definido separadamente através da variável Pokemon apresentada anteriormente na seção do window.hpp. Desta forma, definidos assim dentro do onCreate:
 
+```c++
+...
     m_pokemons_list[m_modelPaths[i]] =
         Pokemon{tmp_VAO,         tmp_VBO, tmp_EBO, vertices_pokemon,
                 indices_pokemon, color,   name};
@@ -152,6 +152,19 @@ A posição e o tipo de Pokémon que sera renderizado é construído pela lógic
 
 ```
 
+`loadModelFromFile`: Função de carregamento dos arquivos .obj. O retorno dela é uma tupla com os vertices e indices das posições do objeto (Pokémon ou Pokébola):
+
+```c++
+std::tuple<std::vector<Vertex>, std::vector<GLuint>>
+Window::loadModelFromFile(std::string_view path) {
+
+  .
+  .
+  .
+
+  return std::make_tuple(vertices, indices);
+}
+```
 
 
 `onPaint`: Função que renderiza a cena, utilizando shaders para renderizar os Pokémons, a Pokébola e o chão. A renderização de cada Pokémon acontece conforme o código abaixo:
@@ -249,3 +262,31 @@ O arquivo camera.cpp é composto pelas funções utilizadas na classe Camera par
 * camera.hpp:
 
 O arquivo camera.hpp define a classe Camera que é usada para a visualização da cena pelo usuário.
+
+Foram definidos 2 getters para capturar e retornar a posição da camêra (m_eye) e o ponto para onde a câmera está olhando (m_at), conforme abaixo:
+
+```c++
+// ADICIONADO - GETTERS DE POSICAO DA CAMERA
+  glm::vec3 const getEyePosition() const { return m_eye; }
+  glm::vec3 const getLookAtPoint() const { return m_at; }
+```
+
+Eles são utilizados na função de lançamento da pokébola `launchPokeball` para realizar os cálculos de posição da pokébola e posição de lançamento, conforme o código abaixo do arquivo `window.cpp`:
+
+```c++
+void Window::launchPokeball() {
+  if (!m_pokeballLaunched) {
+    m_currentState = PokemonState::Live;
+
+    fmt::print("Pokebola vai!\n");
+
+    m_pokeballPosition = m_camera.getEyePosition();
+
+    glm::vec3 launchDirection =
+        glm::normalize(m_camera.getLookAtPoint() - m_camera.getEyePosition());
+    float launchSpeed = 2.0f;
+    m_pokeballVelocity = launchDirection * launchSpeed;
+    m_pokeballLaunched = true;
+  }
+}
+```
