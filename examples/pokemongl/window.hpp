@@ -7,7 +7,7 @@
 #include "ground.hpp"
 #include <chrono>
 #include <random>
-#include <thread>
+// #include <thread>
 #include <tuple>
 #include <unordered_map>
 #include <set>
@@ -106,6 +106,8 @@ private:
 
   void backToLive();
   void restartGame();
+
+  int frameTimer{0};
 };
 
 #endif

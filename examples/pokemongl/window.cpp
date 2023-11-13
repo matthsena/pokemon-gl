@@ -19,8 +19,9 @@ void Window::onEvent(SDL_Event const &event) {
     }
 
     if (event.key.keysym.sym == SDLK_r) {
-      std::thread restartGameThread(&Window::restartGame, this);
-      restartGameThread.detach();
+      // std::thread restartGameThread(&Window::restartGame, this);
+      // restartGameThread.detach();
+      restartGame();
     }
 
     if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_w)
@@ -87,7 +88,7 @@ void Window::onCreate() {
   m_modelMatrixLocation = abcg::glGetUniformLocation(m_program, "modelMatrix");
   m_colorLocation = abcg::glGetUniformLocation(m_program, "color");
 
-  for (int i = 0; i < 2; i++) {
+  for (size_t i = 0; i < m_modelPaths.size(); i++) {
     auto color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     std::string name = "";
 
@@ -97,12 +98,6 @@ void Window::onCreate() {
     } else if (m_modelPaths[i] == "bulbasaur.obj") {
       color = glm::vec4(0.2f, 0.6f, 0.3f, 1.0f);
       name = "Bulbasaur";
-    } else if (m_modelPaths[i] == "squirtle.obj") {
-      color = glm::vec4(0.0f, 0.5f, 1.0f, 1.0f);
-      name = "Squirtle";
-    } else if (m_modelPaths[i] == "mew.obj") {
-      color = glm::vec4(0.8f, 0.0f, 0.8f, 1.0f);
-      name = "Mew";
     }
 
     auto const [vertices_pokemon, indices_pokemon] =
@@ -353,12 +348,24 @@ void Window::onPaintUI() {
 
     // https://stackoverflow.com/questions/64653747/how-to-center-align-text-horizontally
     if (m_currentState == PokemonState::Captured) {
+      frameTimer += 1;
+      // ou seja, passou 1.5 segundo (90 frames)
+      if (frameTimer > 90.0f) {
+        backToLive();
+      }
+
       text = "Capturado!";
       textWidth = ImGui::CalcTextSize(text.c_str()).x;
       ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
       ImGui::TextUnformatted(text.c_str());
 
     } else if (m_currentState == PokemonState::Escaped) {
+      frameTimer += 1;
+      // ou seja, passou 1.5 segundo (90 frames)
+      if (frameTimer > 90.0f) {
+        backToLive();
+      }
+
       text = "Escapou!";
       textWidth = ImGui::CalcTextSize(text.c_str()).x;
       ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
@@ -366,6 +373,13 @@ void Window::onPaintUI() {
     }
 
     if (m_restarted == true) {
+      frameTimer += 1;
+      // ou seja, passou 1.5 segundo (90 frames)
+      if (frameTimer > 90.0f) {
+        m_restarted = false;
+        frameTimer = 0.0f;
+      }
+
       text = "Jogo reiniciado";
       textWidth = ImGui::CalcTextSize(text.c_str()).x;
       ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
@@ -384,8 +398,7 @@ void Window::onPaintUI() {
 
       for (const auto &pokemon : m_pokedex_pokemons) {
         // ImGui::Text(pokemon.c_str());
-      ImGui::TextUnformatted(pokemon.c_str());
-
+        ImGui::TextUnformatted(pokemon.c_str());
       }
 
       // Adicione mais informações se necessário
@@ -475,9 +488,6 @@ void Window::updatePokeballPosition() {
             m_currentState = PokemonState::Escaped;
           }
 
-          std::thread backToLiveThread(&Window::backToLive, this);
-          backToLiveThread.detach();
-
           m_pokeballLaunched = false;
           break;
         }
@@ -487,8 +497,8 @@ void Window::updatePokeballPosition() {
 }
 
 void Window::backToLive() {
-  std::this_thread::sleep_for(std::chrono::seconds(1));
   m_currentState = PokemonState::Live;
+  frameTimer = 0.0f;
 }
 
 void Window::restartGame() {
@@ -502,8 +512,8 @@ void Window::restartGame() {
   m_pokeballLaunched = false;
   m_pokedex_pokemons.clear();
 
+  m_showPokedex = false;
 
   m_restarted = true;
-  std::this_thread::sleep_for(std::chrono::seconds(1));
-  m_restarted = false;
+  frameTimer = 0.0f;
 }
