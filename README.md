@@ -60,42 +60,6 @@ B: Abre o Pokédex com a listagem de Pokémons capturados a partir de `m_showPok
 
 Também foram definidas as setas e as teclas AWSD para o comando de movimentação do usuário em primeira pessoa.
 
-`onCreate`: Função chamada para inicializar a aplicação. Os shaders são chamados nos arquivos `lookat.frag` e `lookat.vert`. Além disso, no onCreate é aplicada a configuração do nome e as cores dos Pokémons, conforme o trecho de código abaixo:
-
-
-A posição e o tipo de Pokémon que sera renderizado é construído pela lógica abaixo, onde as duas definições são feitas de forma aleatória pela função `rd_poke_position` e `rd_poke_model`, respectivamente:
-
-```c++
-// Definindo posição inicial dos pokemons
-  m_randomEngine.seed(
-      std::chrono::steady_clock::now().time_since_epoch().count());
-
-  std::uniform_real_distribution<float> rd_poke_position(-5.0f, 5.0f);
-  std::uniform_int_distribution<int> rd_poke_model(0, m_modelPaths.size() - 1);
-
-  // inicializando pokemons
-  for (int i = 0; i < m_num_pokemons; ++i) {
-    m_pokemon[i] = m_pokemons_list[m_modelPaths[rd_poke_model(m_randomEngine)]];
-    m_pokemon[i].m_position = glm::vec3(rd_poke_position(m_randomEngine), 0,
-                                        rd_poke_position(m_randomEngine));
-  }
-
-```
-
-`loadModelFromFile`: Função de carregamento dos arquivos .obj. O retorno dela é uma tupla com os vertices e indices das posições do objeto (Pokémon ou Pokébola):
-
-```c++
-std::tuple<std::vector<Vertex>, std::vector<GLuint>>
-Window::loadModelFromFile(std::string_view path) {
-
-  .
-  .
-  .
-
-  return std::make_tuple(vertices, indices);
-}
-```
-
 
 `onPaint`: Função que renderiza a cena, utilizando shaders para renderizar os Pokémons, a Pokébola e o chão. A renderização de cada Pokémon acontece conforme o código abaixo:
 
