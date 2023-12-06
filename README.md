@@ -44,32 +44,7 @@ A classe Window é definida e herda da classe abcg::OpenGLWindow, que é uma par
 
 ### Variáveis importantes:
 
-`struct Pokemon`: Variável struct que armazena os VBOs, EBOs, nome e outras características de cada Pokémon. Dessa forma, não temos uma variável global para essas definições, mas uma para cada obj.
-
-```c++
-  struct Pokemon {
-    GLuint m_vao{};
-    GLuint m_vbo{};
-    GLuint m_ebo{};
-    std::vector<Vertex> m_vertices;
-    std::vector<GLuint> m_indices;
-    glm::vec4 m_color{};
-    std::string m_name{};
-    bool m_captured{false};
-    glm::vec3 m_position{0, 0, 0};
-  };
-```
-
-
-`m_pokemons_list`: Hashmap que guarda os dados de VAO, VBO, EBO, Vertices e Indices de cada Pokémon existente na lista de arquivos `.obj`.
-```c++
-std::unordered_map<std::string, Pokemon> m_pokemons_list;
-```
-
 `m_modelPaths`: Variável que armazena uma lista dos arquivos .obj que podem ser renderizados na aplicação de forma aleatória.
-```c++
-  std::vector<std::string> m_modelPaths = {"charmander.obj", "bulbasaur.obj"};
-```
 
 `m_font`: Variável utilizada para a renderização dos textos que são apresentados na tela (Escapou!, Capturado!, Jogo Reiniciado)
 
@@ -86,72 +61,6 @@ B: Abre o Pokédex com a listagem de Pokémons capturados a partir de `m_showPok
 Também foram definidas as setas e as teclas AWSD para o comando de movimentação do usuário em primeira pessoa.
 
 `onCreate`: Função chamada para inicializar a aplicação. Os shaders são chamados nos arquivos `lookat.frag` e `lookat.vert`. Além disso, no onCreate é aplicada a configuração do nome e as cores dos Pokémons, conforme o trecho de código abaixo:
-
-```c++
-  for (int i = 0; i < 2; i++) {
-    auto color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    std::string name = "";
-
-    if (m_modelPaths[i] == "charmander.obj") {
-      color = glm::vec4(1.0f, 0.5f, 0.0f, 1.0f);
-      name = "Charmander";
-    } else if (m_modelPaths[i] == "bulbasaur.obj") {
-      color = glm::vec4(0.2f, 0.6f, 0.3f, 1.0f);
-      name = "Bulbasaur";
-    }
-
-    auto const [vertices_pokemon, indices_pokemon] =
-        loadModelFromFile(assetsPath + m_modelPaths[i]);
-
-    GLuint tmp_VAO{};
-    GLuint tmp_VBO{};
-    GLuint tmp_EBO{};
-
-    // Generate VBO
-    abcg::glGenBuffers(1, &tmp_VBO);
-    abcg::glBindBuffer(GL_ARRAY_BUFFER, tmp_VBO);
-    abcg::glBufferData(GL_ARRAY_BUFFER,
-                       sizeof(vertices_pokemon.at(0)) * vertices_pokemon.size(),
-                       vertices_pokemon.data(), GL_STATIC_DRAW);
-    abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // Generate EBO
-    abcg::glGenBuffers(1, &tmp_EBO);
-    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tmp_EBO);
-    abcg::glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                       sizeof(indices_pokemon.at(0)) * indices_pokemon.size(),
-                       indices_pokemon.data(), GL_STATIC_DRAW);
-    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-    // Create VAO
-    abcg::glGenVertexArrays(1, &tmp_VAO);
-
-    // Bind vertex attributes to current VAO
-    abcg::glBindVertexArray(tmp_VAO);
-
-    abcg::glBindBuffer(GL_ARRAY_BUFFER, tmp_VBO);
-    auto const positionAttribute{
-        abcg::glGetAttribLocation(m_program, "inPosition")};
-    abcg::glEnableVertexAttribArray(positionAttribute);
-    abcg::glVertexAttribPointer(positionAttribute, 3, GL_FLOAT, GL_FALSE,
-                                sizeof(Vertex), nullptr);
-    abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    abcg::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tmp_EBO);
-...
-  
-  }
-```
-
-Os VBOs e EBOs para cada Pokémon é definido separadamente através da variável Pokemon apresentada anteriormente na seção do window.hpp. Desta forma, definidos assim dentro do onCreate:
-
-```c++
-...
-    m_pokemons_list[m_modelPaths[i]] =
-        Pokemon{tmp_VAO,         tmp_VBO, tmp_EBO, vertices_pokemon,
-                indices_pokemon, color,   name};
-  }
-```
 
 
 A posição e o tipo de Pokémon que sera renderizado é construído pela lógica abaixo, onde as duas definições são feitas de forma aleatória pela função `rd_poke_position` e `rd_poke_model`, respectivamente:
